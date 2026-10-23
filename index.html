@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lo Zibaldone di Giacomo - L'Enigma delle Quattro Parole</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font eleganti per atmosfera ottocentesca -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;800&family=Dancing+Script:wght@600;700&family=IM+Fell+English:ital@0;1&family=Courier+Prime:wght@700&display=swap" rel="stylesheet">
+    
+    <style>
+        .font-title { font-family: 'Cinzel', serif; }
+        .font-handwriting { font-family: 'Dancing Script', cursive; }
+        .font-body { font-family: 'IM Fell English', serif; }
+        .font-code { font-family: 'Courier Prime', monospace; }
+
+        body {
+            background-color: #231b14;
+            background-image: radial-gradient(#3a2d21 1px, transparent 1px);
+            background-size: 24px 24px;
+            color: #2c221e;
+        }
+
+        .parchment {
+            background: #f4e8c1;
+            background-image: 
+                radial-gradient(ellipse at center, rgba(255,255,255,0.6) 0%, rgba(220,200,150,0.5) 80%),
+                url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.04' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23noise)' opacity='0.08'/%3E%3C/svg%3E");
+            box-shadow: 0 15px 35px rgba(0,0,0,0.6), inset 0 0 90px rgba(139,90,43,0.35);
+            border: 1px solid #c8b082;
+        }
+
+        /* Inline Input Word Slots */
+        .inline-word-slot {
+            display: inline-flex;
+            gap: 3px;
+            align-items: center;
+            vertical-align: baseline;
+            margin: 2px 4px;
+            padding: 2px 4px;
+            border-radius: 4px;
+            background-color: rgba(140, 109, 70, 0.08);
+            border: 1px dashed rgba(140, 109, 70, 0.4);
+            transition: all 0.2s ease;
+        }
+
+        .inline-word-slot:focus-within {
+            background-color: rgba(184, 134, 11, 0.15);
+            border-color: #b8860b;
+            box-shadow: 0 0 8px rgba(184, 134, 11, 0.3);
+        }
+
+        .inline-word-slot.solved {
+            background-color: rgba(22, 101, 52, 0.12) !important;
+            border: 1px solid #15803d !important;
+        }
+
+        /* Individual Character Input */
+        .char-input {
+            width: 1.55rem;
+            height: 2.2rem;
+            text-align: center;
+            font-family: 'Dancing Script', cursive;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #3d2612;
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid #7c5832;
+            border-radius: 0;
+            outline: none;
+            text-transform: uppercase;
+            transition: border-color 0.2s, background-color 0.2s;
+            padding: 0;
+        }
+
+        .char-input:focus {
+            border-bottom: 3px solid #b8860b;
+            background-color: rgba(255, 255, 255, 0.4);
+        }
+
+        .char-input.hint-revealed {
+            color: #854d0e;
+            font-weight: 800;
+        }
+
+        .inline-word-slot.solved .char-input {
+            border-bottom: 2px solid #15803d;
+            color: #15803d;
+        }
+
+        @keyframes pulse-gold {
+            0% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.7); }
+            70% { box-shadow: 0 0 0 15px rgba(212, 175, 55, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0); }
+        }
+
+        .unlocked-glow { animation: pulse-gold 1.8s infinite; }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-4px); }
+            40%, 80% { transform: translateX(4px); }
+        }
+
+        .animate-shake { animation: shake 0.35s ease-in-out; }
+    </style>
+</head>
+<body class="font-body min-h-screen flex items-center justify-center p-3 md:p-6">
+
+    <div class="max-w-3xl w-full parchment rounded-lg p-5 md:p-8 relative overflow-hidden my-auto">
+        
+        <!-- Sigillo aristocratico decorativo -->
+        <div class="absolute -top-6 -right-6 w-28 h-28 rounded-full bg-amber-950/10 border-2 border-amber-900/20 flex items-center justify-center pointer-events-none">
+            <span class="font-title text-4xl text-amber-950/20 font-bold">GL</span>
+        </div>
+
+        <!-- Intestazione -->
+        <header class="text-center mb-6 border-b border-amber-900/20 pb-4">
+            <h1 class="font-title text-2xl md:text-4xl text-amber-950 font-bold tracking-wide">Lo Zibaldone di Giacomo</h1>
+            <p class="font-handwriting text-xl md:text-2xl text-amber-900 mt-1">L'Enigma della Teoria del Piacere</p>
+        </header>
+
+        <!-- Area di Lettura Vocale / Audio simulato -->
+        <div class="bg-amber-950/5 border border-amber-900/20 rounded-md p-4 mb-6 relative">
+            <div class="flex items-center justify-between mb-2">
+                <span class="font-title text-xs tracking-wider uppercase text-amber-900/70 font-semibold flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M18 3a1 1 0 00-1.196-.98l-10 2A1 1 0 006 5v9.114A4.369 4.369 0 005 14c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V7.82l8-1.6v5.894A4.37 4.37 0 0015 12c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V3z"/></svg>
+                    Istruzioni di Gioco
+                </span>
+            </div>
+            
+            <p class="text-sm text-amber-950/80 italic">
+                Ricomponi il pensiero digitando direttamente le lettere mancanti sui trattini. Se sei in difficoltà, attendi che il pulsante d'aiuto si attivi!
+            </p>
+        </div>
+
+        <!-- Area di Gioco: Scrittura diretta sui trattini -->
+        <main class="mb-6">
+            <p class="text-xs uppercase font-title tracking-widest text-amber-900/80 mb-3 text-center">
+                Completa i quattro concetti mancanti
+            </p>
+
+            <div class="bg-amber-50/80 p-5 md:p-7 rounded-md border border-amber-900/30 text-lg md:text-xl leading-loose text-amber-950 shadow-inner text-justify">
+                "Il piacer più solido di questa vita è il piacer vano delle 
+                
+                <!-- PAROLA A: ILLUSIONI (9) -->
+                <span id="slotA" class="inline-word-slot"></span>.
+                
+                La felicità consiste nell'
+                
+                <!-- PAROLA B: ATTENDERE (9) -->
+                <span id="slotB" class="inline-word-slot"></span>,
+                
+                nell'immaginare ciò che non c'è. Il piacere possibile è sempre 
+                
+                <!-- PAROLA C: RELATIVO (8) -->
+                <span id="slotC" class="inline-word-slot"></span>
+                
+                e non consiste che nel 
+                
+                <!-- PAROLA D: FUTURO (6) -->
+                <span id="slotD" class="inline-word-slot"></span>."
+            </div>
+        </main>
+
+        <!-- Footer con Timer Progressivo e Pulsante Aiuto -->
+        <footer class="flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-amber-900/20 pt-4">
+            <div class="flex items-center gap-3">
+                <button id="hintBtn" disabled class="px-4 py-2 bg-amber-900/30 text-amber-950/50 rounded text-sm font-sans flex items-center gap-2 cursor-not-allowed transition shadow-sm">
+                    <span>💡</span>
+                    <span id="hintBtnText">Primo aiuto tra (60s)</span>
+                </button>
+            </div>
+
+            <div class="text-xs text-amber-900/80 font-mono text-center sm:text-right">
+                <span id="timerStatus" class="inline-block bg-amber-900/10 px-2 py-1 rounded border border-amber-900/20">
+                    Prossimo aiuto: <strong id="countdownDisplay">01:00</strong>
+                </span>
+            </div>
+        </footer>
+
+        <!-- Box Messaggi d'Aiuto Attivo -->
+        <div id="hintDisplayBox" class="hidden mt-4 p-4 bg-amber-100/95 border-l-4 border-amber-800 text-amber-950 text-sm rounded shadow-sm">
+            <div class="flex justify-between items-start">
+                <p class="font-bold font-title mb-1 text-amber-900" id="hintTitle">Suggerimento di Giacomo:</p>
+                <button onclick="closeHintBox()" class="text-amber-900 text-xs font-bold hover:underline">Chiudi ✕</button>
+            </div>
+            <p id="hintDisplayText" class="italic mt-1"></p>
+        </div>
+
+    </div>
+
+    <!-- MODALE SELEZIONE AIUTO ([A], [B], [C] o [D]) -->
+    <div id="hintSelectModal" class="hidden fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="parchment max-w-md w-full p-6 rounded-lg shadow-2xl border border-amber-800 text-center">
+            <h3 class="font-title text-lg text-amber-950 font-bold mb-2">Quale parola vuoi sbloccare?</h3>
+            <p class="text-xs text-amber-900 mb-4">L'aiuto inserirà o suggerirà lettere direttamente sui trattini:</p>
+            
+            <div class="flex flex-col gap-2 mb-4">
+                <button onclick="applyHintFor('A')" class="py-2.5 px-3 bg-amber-900/10 hover:bg-amber-900/20 border border-amber-900/30 rounded text-amber-950 text-sm font-sans text-left flex justify-between items-center">
+                    <span>Parola [A] (9 lettere)</span>
+                    <span id="hintBadgeA" class="text-xs bg-amber-900 text-amber-100 px-2 py-0.5 rounded">Indizio 1</span>
+                </button>
+                <button onclick="applyHintFor('B')" class="py-2.5 px-3 bg-amber-900/10 hover:bg-amber-900/20 border border-amber-900/30 rounded text-amber-950 text-sm font-sans text-left flex justify-between items-center">
+                    <span>Parola [B] (9 lettere)</span>
+                    <span id="hintBadgeB" class="text-xs bg-amber-900 text-amber-100 px-2 py-0.5 rounded">Indizio 1</span>
+                </button>
+                <button onclick="applyHintFor('C')" class="py-2.5 px-3 bg-amber-900/10 hover:bg-amber-900/20 border border-amber-900/30 rounded text-amber-950 text-sm font-sans text-left flex justify-between items-center">
+                    <span>Parola [C] (8 lettere)</span>
+                    <span id="hintBadgeC" class="text-xs bg-amber-900 text-amber-100 px-2 py-0.5 rounded">Indizio 1</span>
+                </button>
+                <button onclick="applyHintFor('D')" class="py-2.5 px-3 bg-amber-900/10 hover:bg-amber-900/20 border border-amber-900/30 rounded text-amber-950 text-sm font-sans text-left flex justify-between items-center">
+                    <span>Parola [D] (6 lettere)</span>
+                    <span id="hintBadgeD" class="text-xs bg-amber-900 text-amber-100 px-2 py-0.5 rounded">Indizio 1</span>
+                </button>
+            </div>
+
+            <button onclick="closeHintSelectModal()" class="py-1.5 px-4 text-xs border border-amber-900/40 text-amber-950 rounded font-sans">Torna al testo</button>
+        </div>
+    </div>
+        <!-- MODALE DI VITTORIA FINALE -->
+        <div id="successModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <div class="parchment max-w-md w-full p-6 rounded-lg text-center shadow-2xl border-2 border-amber-600 unlocked-glow">
+                <div class="text-5xl mb-2">📜</div>
+                <h2 class="font-title text-2xl font-bold text-amber-950 mb-2">Pensiero Decifrato!</h2>
+                <p class="text-amber-900 text-sm mb-4">
+                    Hai ricomposto la Teoria del Piacere direttamente dallo Zibaldone di Giacomo!
+                </p>
+                <div class="bg-amber-900/10 p-4 rounded border border-amber-800/30 mb-5">
+                    <span class="font-mono text-lg font-bold text-amber-950 tracking-wide block">
+                        la prima parte del codice di sblocco della stanza è LA VITA
+                    </span>
+                </div>
+                <button onclick="location.reload()" class="px-6 py-2 bg-amber-900 hover:bg-amber-800 text-amber-100 font-title text-sm uppercase rounded shadow">
+                    Rigioca
+                </button>
+            </div>
+        </div>
+
+    <!-- Logica di Gioco JavaScript -->
+    <script>
+        const targets = {
+            A: { word: "ILLUSIONI", len: 9, solved: false },
+            B: { word: "ATTENDERE", len: 9, solved: false },
+            C: { word: "RELATIVO", len: 8, solved: false },
+            D: { word: "FUTURO", len: 6, solved: false }
+        };
+
+        const hintLevels = { A: 0, B: 0, C: 0, D: 0 };
+        const semanticHints = {
+            A: "I sogni e le speranze della mente che rendono sopportabile la vita...",
+            B: "L'azione dell'aspettare con ansia ciò che non c'è ancora...",
+            C: "Qualcosa che non è uguale per tutti e cambia a seconda delle circostanze...",
+            D: "Il tempo che deve ancora venire, dove proiettiamo la speranza..."
+        };
+
+        // Regola dei tempi: primo aiuto a 5 minuti (300s), poi sempre 3 minuti (+180s)
+        const firstWaitSeconds = 300; // 5 minuti
+        const subsequentWaitSeconds = 180; // 3 minuti
+        let timerSeconds = firstWaitSeconds;
+        let timerInterval = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderDashesInputs();
+            startProgressiveTimer();
+        });
+
+        // --- RENDERING DEGLI INPUT DIRETTI SUI TRATTINI ---
+        function renderDashesInputs() {
+            ['A', 'B', 'C', 'D'].forEach(slot => {
+                const container = document.getElementById(`slot${slot}`);
+                container.innerHTML = '';
+
+                for (let i = 0; i < targets[slot].len; i++) {
+                    const input = document.createElement('input');
+                    input.type = 'text';
+                    input.maxLength = 1;
+                    input.className = 'char-input';
+                    input.dataset.slot = slot;
+                    input.dataset.index = i;
+
+                    // Eventi digitazione diretta
+                    input.addEventListener('input', (e) => handleCharInput(e, slot, i));
+                    input.addEventListener('keydown', (e) => handleKeyDown(e, slot, i));
+
+                    container.appendChild(input);
+                }
+            });
+        }
+
+        function handleCharInput(e, slot, index) {
+            const input = e.target;
+            const val = input.value.toUpperCase();
+            input.value = val;
+
+            if (val) {
+                // Passa automaticamente al trattino successivo
+                const nextInput = document.querySelector(`input[data-slot="${slot}"][data-index="${index + 1}"]`);
+                if (nextInput) {
+                    nextInput.focus();
+                }
+            }
+
+            checkSlotWord(slot);
+        }
+
+        function handleKeyDown(e, slot, index) {
+            // Gestione Backspace per tornare indietro al trattino precedente
+            if (e.key === 'Backspace' && !e.target.value) {
+                const prevInput = document.querySelector(`input[data-slot="${slot}"][data-index="${index - 1}"]`);
+                if (prevInput) {
+                    prevInput.focus();
+                }
+            }
+        }
+
+        function checkSlotWord(slot) {
+            const inputs = document.querySelectorAll(`input[data-slot="${slot}"]`);
+            let entered = "";
+            inputs.forEach(inp => entered += inp.value);
+
+            const targetWord = targets[slot].word;
+            if (entered === targetWord) {
+                targets[slot].solved = true;
+                document.getElementById(`slot${slot}`).classList.add('solved');
+                inputs.forEach(inp => {
+                    inp.readOnly = true;
+                    inp.classList.remove('hint-revealed');
+                });
+                checkVictory();
+            }
+        }
+
+        // --- TIMER PROGRESSIVO (1 MIN, POI +2 MIN, POI +3 MIN, ...) ---
+        function startProgressiveTimer() {
+            updateCountdownUI();
+
+            timerInterval = setInterval(() => {
+                timerSeconds--;
+                updateCountdownUI();
+
+                if (timerSeconds <= 0) {
+                    // Sblocca il pulsante aiuto per questo turno
+                    enableHintButton();
+                }
+            }, 1000);
+        }
+
+        function updateCountdownUI() {
+            const countdownDisplay = document.getElementById('countdownDisplay');
+            const minutes = Math.floor(timerSeconds / 60);
+            const seconds = timerSeconds % 60;
+            const formatted = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            
+            if (countdownDisplay) countdownDisplay.textContent = formatted;
+
+            const hintBtnText = document.getElementById('hintBtnText');
+            if (timerSeconds > 0) {
+                hintBtnText.textContent = `Prossimo aiuto tra (${formatted})`;
+            }
+        }
+
+        function enableHintButton() {
+            const hintBtn = document.getElementById('hintBtn');
+            const hintBtnText = document.getElementById('hintBtnText');
+
+            hintBtn.disabled = false;
+            hintBtn.classList.remove('bg-amber-900/30', 'text-amber-950/50', 'cursor-not-allowed');
+            hintBtn.classList.add('bg-amber-900', 'hover:bg-amber-800', 'text-amber-100', 'cursor-pointer');
+            hintBtnText.textContent = "💡 Chiedi aiuto a Giacomo";
+            hintBtn.onclick = openHintSelectModal;
+        }
+
+        function resetTimerForNextLevel() {
+            timerSeconds = subsequentWaitSeconds;
+
+            const hintBtn = document.getElementById('hintBtn');
+            const hintBtnText = document.getElementById('hintBtnText');
+            hintBtn.disabled = true;
+            hintBtn.classList.remove('bg-amber-900', 'hover:bg-amber-800', 'text-amber-100', 'cursor-pointer');
+            hintBtn.classList.add('bg-amber-900/30', 'text-amber-950/50', 'cursor-not-allowed');
+            hintBtnText.textContent = `Prossimo aiuto in attesa...`;
+        }
+
+        // --- APPLICAZIONE DEGLI AIUTI PROGRESSIVI ---
+        function openHintSelectModal() {
+            updateHintBadges();
+            document.getElementById('hintSelectModal').classList.remove('hidden');
+        }
+
+        function closeHintSelectModal() {
+            document.getElementById('hintSelectModal').classList.add('hidden');
+        }
+
+        function updateHintBadges() {
+            ['A', 'B', 'C', 'D'].forEach(slot => {
+                const badge = document.getElementById(`hintBadge${slot}`);
+                if (targets[slot].solved) {
+                    badge.textContent = "Completata ✓";
+                    badge.className = "text-xs bg-green-800 text-green-100 px-2 py-0.5 rounded";
+                } else {
+                    const lvl = hintLevels[slot];
+                    if (lvl === 0) badge.textContent = "Indizio 1 (Concetto)";
+                    else if (lvl === 1) badge.textContent = "Indizio 2 (Prima lettera)";
+                    else badge.textContent = `Svela lettera (${lvl - 1}/${targets[slot].len})`;
+                    badge.className = "text-xs bg-amber-900 text-amber-100 px-2 py-0.5 rounded";
+                }
+            });
+        }
+
+        function applyHintFor(slot) {
+            if (targets[slot].solved) return;
+
+            hintLevels[slot]++;
+            const lvl = hintLevels[slot];
+            const targetWord = targets[slot].word;
+            const hintBox = document.getElementById('hintDisplayBox');
+            const hintText = document.getElementById('hintDisplayText');
+
+            closeHintSelectModal();
+            resetTimerForNextLevel();
+
+            hintBox.classList.remove('hidden');
+
+            if (lvl === 1) {
+                // Livello 1: Suggerimento concettuale
+                hintText.textContent = `[Parola ${slot}]: ${semanticHints[slot]}`;
+            } 
+            else if (lvl === 2) {
+                // Livello 2: Appare l'iniziale direttamente sul primo trattino
+                fillLetterOnDash(slot, 0, targetWord[0]);
+                hintText.textContent = `[Parola ${slot}]: Inserita l'iniziale '${targetWord[0]}' sul primo trattino!`;
+            } 
+            else {
+                // Livello 3+: Riempie piano piano le lettere successive direttamente sui trattini
+                const letterIndex = lvl - 2; // 1 -> seconda lettera, 2 -> terza, etc.
+                if (letterIndex < targetWord.length) {
+                    for (let i = 0; i <= letterIndex; i++) {
+                        fillLetterOnDash(slot, i, targetWord[i]);
+                    }
+                    hintText.textContent = `[Parola ${slot}]: Svelata la lettera ${letterIndex + 1} (${targetWord[letterIndex]}) sui trattini!`;
+                }
+            }
+
+            checkSlotWord(slot);
+        }
+
+        function fillLetterOnDash(slot, index, char) {
+            const input = document.querySelector(`input[data-slot="${slot}"][data-index="${index}"]`);
+            if (input) {
+                input.value = char;
+                input.classList.add('hint-revealed');
+            }
+        }
+
+        function closeHintBox() {
+            document.getElementById('hintDisplayBox').classList.add('hidden');
+        }
+
+        // --- CONTROLLO VITTORIA ---
+        function checkVictory() {
+            if (targets.A.solved && targets.B.solved && targets.C.solved && targets.D.solved) {
+                clearInterval(timerInterval);
+                setTimeout(() => {
+                    document.getElementById('successModal').classList.remove('hidden');
+                }, 400);
+            }
+        }
+    </script>
+</body>
+</html>
